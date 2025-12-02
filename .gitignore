@@ -3,7 +3,7 @@ env/
 .venv/
 .env/
 
-
+build/
 
 .vscode/
 .idea/
