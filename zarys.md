@@ -52,6 +52,14 @@ Tutaj wrzucanie wszytsko potrzebne do zbudwania projektu, typu:
 - nazwa programu wynikowego
 - jakie biblioteki beda uzywane -- jak cos dodajecie to wpisujcie tutaj jak zainastalwoac 
 
+
+## GEOS BIBLIOTEKA
+1. https://libgeos.org/usage/download/ -> stąd pobrałem 3.14.1
+2. w AOIN_project/ zrobiłem mkdir libs
+3. w AOIN_project/libs wypakowałem bibliotekę
+4. w libs/geos-3.14.1 jest plik INSTALL.md i tam jest opis, ja robiłem dla linuxa i potem sudo make install
+5. i się wszystko zainstalowało ogólnie więc chyba ok? sorki ja pierwszy raz używam cmake i cpp też trochę dziki jest
+
 ## Kompilacja i Uruchomienie
 Strona do instalowania cmake cmake.org/download/
 Zainstalujcie sobie wtyczke w VScode CMake Tools
