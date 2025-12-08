@@ -5,8 +5,14 @@ env/
 
 build/
 
+libs/
 .vscode/
 .idea/
 
 
 __pycache__/
+
+geos_cpp_tutorial.md
+opis.md
+
+CMakeLists.txt

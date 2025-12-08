@@ -16,7 +16,8 @@ pd.set_option('display.float_format', '{:.12f}'.format)
 
 # Set precision for Decimal
 getcontext().prec = 25
-scale_factor = Decimal('1e15')
+# scale_factor = Decimal('1e15')
+scale_factor = Decimal('1e3')
 
 
 # Build the index of the submission, in the format:
@@ -383,30 +384,56 @@ def get_total_score(dict_of_side_length: dict[str, Decimal]):
         score += v ** 2 / Decimal(k)
     return score
 
+def trees_overlap(t1: ChristmasTree, t2: ChristmasTree) -> bool:
+    poly1 = t1.polygon
+    poly2 = t2.polygon
+
+
+    return poly1.intersects(poly2) and not poly1.touches(poly2)
+
 if __name__ == '__main__':
-    
-    tree_data = []
-    current_placed_trees = []  # Initialize an empty list for the first iteration
+    # tests = [
+    # ("t1", "0", "0", "0"),
+    # ("t2", "2", "0", "45"),
+    # ("t3", "-1.5", "1", "90")
+    # ]
 
-    for n in range(200):
-        # Pass the current_placed_trees to initialize_trees
-        current_placed_trees, side = initialize_trees(n+1, existing_trees=current_placed_trees)
-        if (n+1) % 10 == 0:
-            plot_results(side, current_placed_trees, n+1)
-        for tree in current_placed_trees:
-            tree_data.append([tree.center_x, tree.center_y, tree.angle])
+    # print("PYTHON RESULTS:")
+    # print("ID\tArea\t\tMinX\tMaxX\tMinY\tMaxY\tWKT(first 100 chars)")
+    # for name, cx, cy, angle in tests:
+    #     tree = ChristmasTree(cx, cy, angle)
+    #     bounds = tree.polygon.bounds
+    #     area = tree.polygon.area
+    #     wkt = tree.polygon.wkt[:100] + "..."
+    #     print(f"{name}\t{area:.0f}\t{bounds[0]:.0f}\t{bounds[2]:.0f}\t{bounds[1]:.0f}\t{bounds[3]:.0f}\t{wkt}")
+
+    t1 = ChristmasTree("0", "0", "0")
+    t2 = ChristmasTree("0.1", "0", "0")  # przesunięta lekko
+    t3 = ChristmasTree("5", "0", "0") 
+    print(trees_overlap(t1, t2))  
+    print(trees_overlap(t1, t3)) 
+        # tree_data = []
+    # current_placed_trees = []  # Initialize an empty list for the first iteration
+
+    # for n in range(200):
+    #     # Pass the current_placed_trees to initialize_trees
+    #     current_placed_trees, side = initialize_trees(n+1, existing_trees=current_placed_trees)
+    #     if (n+1) % 10 == 0:
+    #         plot_results(side, current_placed_trees, n+1)
+    #     for tree in current_placed_trees:
+    #         tree_data.append([tree.center_x, tree.center_y, tree.angle])
             
-    cols = ['x', 'y', 'deg']
-    submission = pd.DataFrame(
-        index=index, columns=cols, data=tree_data).rename_axis('id')
+    # cols = ['x', 'y', 'deg']
+    # submission = pd.DataFrame(
+    #     index=index, columns=cols, data=tree_data).rename_axis('id')
 
-    for col in cols:
-        submission[col] = submission[col].astype(float).round(decimals=6)
+    # for col in cols:
+    #     submission[col] = submission[col].astype(float).round(decimals=6)
         
-    # To ensure everything is kept as a string, prepend an 's'
-    for col in submission.columns:
-        submission[col] = 's' + submission[col].astype('string')
-    submission.to_csv('sample_submission.csv')
+    # # To ensure everything is kept as a string, prepend an 's'
+    # for col in submission.columns:
+    #     submission[col] = 's' + submission[col].astype('string')
+    # submission.to_csv('sample_submission.csv')
 
     # df = load_submission('sample_submission.csv')
     # # print(df.head(10))
