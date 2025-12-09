@@ -21,6 +21,7 @@ set(SOURCES
     src/Geometry.cpp
     src/GreedyPacker.cpp
     src/main.cpp
+    src/CSVWriter.cpp
 )
 
 # ========================================
@@ -75,25 +76,19 @@ target_include_directories(christmas_greedy PRIVATE
 
 
 
-    # ========================================
-    # GEOS Configuration - OPCJA 2 (FALLBACK)
-    # Dla GEOS zainstalowanego lokalnie w libs/
-    # ========================================
+    # GEOS - ANIA
     set(GEOS_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/geos-3.14.1)
-    set(GEOS_INSTALL_DIR ${GEOS_BASE_DIR}/install)  # Katalog instalacji
+    set(GEOS_INSTALL_DIR ${GEOS_BASE_DIR}/install)  # katalog instalacji
     
-    # Szukaj w katalogach zainstalowanych
     set(GEOS_INCLUDE_DIR ${GEOS_INSTALL_DIR}/include)
     set(GEOS_LIB_DIR ${GEOS_INSTALL_DIR}/lib)
-    
-    # Opcja 1: Szukaj libgeos
+
     find_library(GEOS_LIBRARY
         NAMES geos
         PATHS ${GEOS_LIB_DIR}
         NO_DEFAULT_PATH
     )
     
-    # Opcja 2: Jeśli brakuje, szukaj libgeos_c (C API)
     if(NOT GEOS_LIBRARY)
         find_library(GEOS_LIBRARY
             NAMES geos_c
@@ -102,16 +97,16 @@ target_include_directories(christmas_greedy PRIVATE
         )
     endif()
     
-    # Sprawdzenie czy znaleziono
+
     if(EXISTS ${GEOS_INCLUDE_DIR} AND GEOS_LIBRARY)
-        message(STATUS "✓ Found GEOS (manual configuration)")
+        message(STATUS "  Found GEOS (manual configuration)")
         message(STATUS "  Include: ${GEOS_INCLUDE_DIR}")
         message(STATUS "  Library: ${GEOS_LIBRARY}")
         
         target_include_directories(christmas_greedy PRIVATE ${GEOS_INCLUDE_DIR})
         target_link_libraries(christmas_greedy PRIVATE ${GEOS_LIBRARY})
     else()
-        message(FATAL_ERROR "❌ GEOS not found!")
+        message(FATAL_ERROR "  GEOS not found!")
         message(FATAL_ERROR "   Expected include dir: ${GEOS_INCLUDE_DIR}")
         message(FATAL_ERROR "   Expected library dir: ${GEOS_LIB_DIR}")
         message(FATAL_ERROR "   Install GEOS first: cd ${GEOS_BASE_DIR} && mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build . && cmake --install . --prefix ../install")

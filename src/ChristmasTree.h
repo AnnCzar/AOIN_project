@@ -24,7 +24,7 @@ private:
     // Wielokąt reprezentujący chinkę
     std::unique_ptr<Geometry> polygon;
     
-    // Parametry wymiarów choinki
+    // arametry wymiarów choinki
     static constexpr double scale_factor = 1000.0;
     static constexpr double trunk_w = 0.15;
     static constexpr double trunk_h = 0.2;
@@ -36,8 +36,7 @@ private:
     static constexpr double tier_1_y = 0.5;
     static constexpr double tier_2_y = 0.25;
     static constexpr double base_y = 0.0;
-    
-    // Metody pomocnicze
+
     std::unique_ptr<Geometry> buildInitialPolygon();
     std::unique_ptr<Geometry> rotatePolygon(Geometry* geom, double angle_deg);
     std::unique_ptr<Geometry> translatePolygon(Geometry* geom, double dx, double dy);
@@ -51,6 +50,9 @@ public:
     ~ChristmasTree() = default;
     
     // Gettery
+    double getX() const { return center_x; }
+    double getY() const { return center_y; }
+    double getAngle() const { return angle; }
     Geometry* getPolygon() const;
     const geos::geom::Envelope* getEnvelope() const;
     
@@ -66,4 +68,4 @@ public:
     void rotate(double new_angle);
 };
 
-#endif // CHRISTMAS_TREE_H
+#endif 

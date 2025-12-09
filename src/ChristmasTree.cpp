@@ -146,6 +146,7 @@ const geos::geom::Envelope* ChristmasTree::getEnvelope() const {
     return polygon->getEnvelopeInternal();
 }
 
+
 // sprawdzanie czy choinka przecina sie z innymi
 bool ChristmasTree::intersects(const ChristmasTree& other) const {
     return polygon->intersects(other.polygon.get());
