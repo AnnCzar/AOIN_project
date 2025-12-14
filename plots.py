@@ -150,6 +150,7 @@ def plot_cpp_results(csv_filename):
     
     print(f"Side length: {side_length:.12f}")
 
+# plot_cpp_results('results.csv')
 
 if __name__ == '__main__':
 

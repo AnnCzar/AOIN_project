@@ -18,6 +18,10 @@ private:
     std::pair<double, double> 
     findBestPosition(const std::shared_ptr<ChristmasTree>& new_tree,
                      const std::vector<std::shared_ptr<ChristmasTree>>& placed);
+    double findBestAngle(const std::shared_ptr<ChristmasTree>& new_tree,
+                     const std::vector<std::shared_ptr<ChristmasTree>>& placed);
+    double tryMoveCloser(const std::shared_ptr<ChristmasTree>& new_tree,
+                     const std::vector<std::shared_ptr<ChristmasTree>>& placed);                   
 };
 
 #endif

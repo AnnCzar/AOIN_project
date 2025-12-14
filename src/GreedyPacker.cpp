@@ -31,6 +31,10 @@ GreedyPacker::packTrees(int num_trees) {
         
         // Ustawiamy znalezioną pozycję
         new_tree->setPosition(best_x, best_y);
+
+        // Szukamy najlepszego kąta dla tej pozycji
+        double best_angle = findBestAngle(new_tree, trees);
+        new_tree->setAngle(best_angle);
         
         trees.push_back(new_tree);
         
@@ -48,7 +52,7 @@ GreedyPacker::findBestPosition(
     const std::vector<std::shared_ptr<ChristmasTree>>& placed) {
     
     // paraemtry przeszukiwania
-    const int NUM_DIRECTIONS = 90;      // 8 kierunków (co 45 stopni)
+    const int NUM_DIRECTIONS = 180;      // 90 kierunków (co 4 stopni)
     const double START_DISTANCE = 30.0; // Start 5 jednostek daleko
     const double STEP = 0.1;           // Zbliżaj co 0.1 jednostki
     const double MIN_DIST = 0.01;      // Granica zbliżania
@@ -91,17 +95,116 @@ GreedyPacker::findBestPosition(
             }
             
 
-            if (!collision && dist < best_distance) {
-                best_distance = dist;
+        //     if (!collision && dist < best_distance) {
+        //         best_distance = dist;
+        //         best_x = x;
+        //         best_y = y;
+        //     }
+        // }
+
+        if (!collision) {
+                double metric = std::max(std::abs(x), std::abs(y)); // Metryka Chebyshev - tworzy kwadrat
+                if (metric < best_distance) {
+                    best_distance = metric;
                 best_x = x;
                 best_y = y;
             }
+        }
         }
         
         // std::cout << "best_dist=" << std::fixed << std::setprecision(2) 
                 //   << best_distance << std::endl;
     }
+   
     
     return {best_x, best_y};
+
+}
+
+ double GreedyPacker::findBestAngle(const std::shared_ptr<ChristmasTree>& new_tree,
+    const std::vector<std::shared_ptr<ChristmasTree>>& placed) {
+        int step = 1; // krok zmiany kata
+        double best_angle = 0.0;
+        double current_x = new_tree->getX();
+        double current_y = new_tree->getY();
+        double best_distance = std::hypot(current_x, current_y);
+
+        for (int rotation = 0; rotation < 360; rotation += step) {
+            new_tree -> setAngle(rotation);
+            new_tree->setPosition(current_x, current_y);
+
+            bool collision = false;
+            for (const auto& placed_tree : placed) {
+                if (new_tree->intersects(*placed_tree)) {
+                    collision = true;
+                    break;
+                }
+            }
+            if (!collision) {
+                double improved_distance = tryMoveCloser(new_tree, placed);
+            
+                if (improved_distance < best_distance) {
+                    best_distance = improved_distance;
+                    best_angle = rotation;
+                    std::cout << "     Znaleziono lepszy kąt: " << rotation 
+                            << "° (odległość: " << improved_distance << ")" << std::endl;
+                }
+            }
+        }
+        new_tree->setAngle(best_angle);
+        new_tree->setPosition(current_x, current_y);
+        tryMoveCloser(new_tree, placed); // zeby jeszcze sprobowac zblizyc
+        
+        return best_angle;
+
+    }
+
+double GreedyPacker::tryMoveCloser(
+    const std::shared_ptr<ChristmasTree>& tree,
+    const std::vector<std::shared_ptr<ChristmasTree>>& placed) {
+    
+    double current_x = tree->getX();
+    double current_y = tree->getY();
+    double current_distance = std::hypot(current_x, current_y);
+    
+    
+    if (current_distance < 0.01) { 
+        return current_distance; // nie da sie blizej
+    }
+    
+    // Kierunek do centrum (0, 0)
+    double to_center_x = -current_x / current_distance;
+    double to_center_y = -current_y / current_distance;
+    
+    const double PUSH_STEP = 0.1; 
+    double best_distance = current_distance;
+    double best_x = current_x;
+    double best_y = current_y;
+    
+    for (double d = PUSH_STEP; d < current_distance; d += PUSH_STEP) {
+        double new_x = current_x + to_center_x * d;
+        double new_y = current_y + to_center_y * d;
+        
+        tree->setPosition(new_x, new_y);
+        
+        bool collision = false;
+        for (const auto& placed_tree : placed) {
+            if (tree->intersects(*placed_tree)) {
+                collision = true;
+                break;
+            }
+        }
+        
+        if (collision) {
+            tree->setPosition(best_x, best_y);
+            return best_distance;
+        } else {
+            best_x = new_x;
+            best_y = new_y;
+            best_distance = std::hypot(new_x, new_y);
+        }
+    }
+    
+    return best_distance;
 }
 
