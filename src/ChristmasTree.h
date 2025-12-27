@@ -66,6 +66,9 @@ public:
     void setAngle(double new_angle);
     void move(double dx, double dy);
     void rotate(double new_angle);
+
+    double getScaleFactor() const;
+
 };
 
 #endif 

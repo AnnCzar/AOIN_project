@@ -13,6 +13,7 @@ public:
 
     static void saveTreesToCSV(
         const std::vector<std::shared_ptr<ChristmasTree>>& trees,
+        const std::vector<double>& sides_square,
         const std::string& filename = "results.csv");
     
     };

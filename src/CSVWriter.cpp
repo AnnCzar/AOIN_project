@@ -3,12 +3,13 @@
 
 void CSVWriter::saveTreesToCSV(
     const std::vector<std::shared_ptr<ChristmasTree>>& trees,
+    const std::vector<double>& sides_square,
     const std::string& filename) {
     
     std::ofstream file(filename);
     
     // header w pliku
-    file << "tree_id,center_x,center_y,angle\n";
+    file << "tree_id,center_x,center_y,angle,square_side\n";
 
 
     // dane choinek
@@ -17,7 +18,8 @@ void CSVWriter::saveTreesToCSV(
              << std::fixed << std::setprecision(4)
              << trees[i]->getX() << ","
              << trees[i]->getY() << ","
-             << trees[i]->getAngle() << "\n";
+             << trees[i]->getAngle() << ","
+             << sides_square[i] << "\n";
         
 
     }

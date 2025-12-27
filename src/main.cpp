@@ -11,7 +11,7 @@ int main(){
 
     // choinka w (0,0) bez obrotu
     ChristmasTree tree11(0.0, 0.0, 0.0);
-    std::cout << "tree1 (0,0,0°):" << std::endl;
+    std::cout << "tree1 (0,0,0):" << std::endl;
     std::cout << "   Pole: " << tree11.getArea() << std::endl;
 
     // 
@@ -22,7 +22,7 @@ int main(){
     
     std::cout << std::endl;
 
-    std::cout << "TEST PRZECIĘĆ ===" << std::endl;
+    std::cout << "TEST PRZECIEC ===" << std::endl;
 
     ChristmasTree tree1(0.0, 0.0, 0.0);     // Środek
     ChristmasTree tree2(0.1, 0.0, 0.0);     // Blisko – powinny się przecinać
@@ -33,23 +33,21 @@ int main(){
     
     std::cout <<  "Greedy test - bez zmiany kata -- kat 0" << std::endl;
 
-    int num_trees = 200;
-    std::cout << "\nPakowanie do pudła " << num_trees << " choinek..." << std::endl;
+    int num_trees = 1;
+    std::cout << "\nPakowanie do pudla " << num_trees << " choinek..." << std::endl;
     GreedyPacker packer;
-    auto trees = packer.packTrees(num_trees);
+    auto result  = packer.packTrees(num_trees);
+    // rozdzielenie wyniku -- results to choinki i boki kwadratow
+    std::vector<std::shared_ptr<ChristmasTree>> trees = result.first;
+    std::vector<double> sides = result.second;
     std::cout << "\nZapakowane" << std::endl;
 
     std::cout << "Zapis do pliku " << std::endl;
 
-    CSVWriter::saveTreesToCSV(trees, "results.csv");
+    // CSVWriter::saveTreesToCSV(trees, "results_5.1.csv");  // zapis w głównym katalogu projektu
+    CSVWriter::saveTreesToCSV(trees, sides,  "../data/output_greedy/trees_square_1.csv"); // zapis w katalogu z wynikami -- wywołanie programu musi być z katalogu build
 
     std::cout << "Koniec" << std::endl;
-
-    
-
-
-
-
 
 
     return 0;

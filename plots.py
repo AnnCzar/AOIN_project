@@ -71,7 +71,7 @@ def calculate_side_length(placed_trees):
     return side_length
 
 
-def plot_results(side_length, placed_trees, num_trees):
+def plot_results(side_length, placed_trees, num_trees, save_path=None):
     _, ax = plt.subplots(figsize=(8, 8))
     colors = plt.cm.viridis(np.linspace(0, 1, num_trees))
     
@@ -119,6 +119,11 @@ def plot_results(side_length, placed_trees, num_trees):
     ax.set_title(f'{num_trees} Trees | Side: {side_length:.6f}', 
                 fontsize=14, fontweight='bold')
     plt.tight_layout()
+    if save_path:
+
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=300)
+        print(f"Wykres zapisano w: {save_path}")
     plt.show()
 
 
@@ -143,10 +148,13 @@ def plot_cpp_results(csv_filename):
         placed_trees.append(tree)
     
     # liczene  długości boku
+    base_name = os.path.basename(csv_filename).replace('.csv', '.png')
+    save_dir = 'data/output_plots' 
+    img_path = os.path.join(save_dir, base_name)
     side_length = calculate_side_length(placed_trees)
     
 
-    plot_results(side_length, placed_trees, len(placed_trees))
+    plot_results(side_length, placed_trees, len(placed_trees), save_path=img_path)
     
     print(f"Side length: {side_length:.12f}")
 
@@ -154,6 +162,8 @@ def plot_cpp_results(csv_filename):
 
 if __name__ == '__main__':
 
-    csv_file = 'results.csv'  
-    
-    plot_cpp_results(csv_file)
+    csv_file_base = 'data/output_greedy/trees_1.csv'  
+    # for n in [1, 2, 3, 4, 5, 20, 50, 150, 200]:
+    for n in [5, 20, 50, 150, 200]:
+        csv_file = csv_file_base.replace('1', str(n))
+        plot_cpp_results(csv_file)

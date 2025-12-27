@@ -190,3 +190,7 @@ void ChristmasTree::move(double dx, double dy) {
 void ChristmasTree::rotate(double new_angle) {
     setAngle(new_angle);
 }
+
+double ChristmasTree::getScaleFactor() const { 
+    return scale_factor; 
+}

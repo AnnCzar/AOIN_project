@@ -18,7 +18,6 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 set(SOURCES
     # src/test.cpp 
     src/ChristmasTree.cpp
-    src/Geometry.cpp
     src/GreedyPacker.cpp
     src/main.cpp
     src/CSVWriter.cpp
@@ -76,7 +75,7 @@ endif()
 
 
 
-    # # GEOS - ANIA
+    # # # GEOS - ANIA
     # set(GEOS_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/geos-3.14.1)
     # set(GEOS_INSTALL_DIR ${GEOS_BASE_DIR}/install)  # katalog instalacji
     

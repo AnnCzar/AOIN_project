@@ -10,7 +10,7 @@
 class GreedyPacker {
 public:
 
-    std::vector<std::shared_ptr<ChristmasTree>> 
+    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> 
     packTrees(int num_trees);
 
 private:
@@ -22,6 +22,9 @@ private:
                      const std::vector<std::shared_ptr<ChristmasTree>>& placed);
     double tryMoveCloser(const std::shared_ptr<ChristmasTree>& new_tree,
                      const std::vector<std::shared_ptr<ChristmasTree>>& placed);                   
+    double calculateGlobalSquareSide(
+        const std::vector<std::shared_ptr<ChristmasTree>>& placed,
+        const std::shared_ptr<ChristmasTree>& new_tree);
 };
 
 #endif
