@@ -67,9 +67,9 @@ GreedyPacker::findBestPosition(
     const std::vector<std::shared_ptr<ChristmasTree>>& placed) {
     
     // paraemtry przeszukiwania
-    const int NUM_DIRECTIONS = 90;      // 90 kierunków (co 4 stopni)
+    const int NUM_DIRECTIONS = 45;      // 90 kierunków (co 4 stopni)
     const double START_DISTANCE = 30.0; // Start 5 jednostek daleko
-    const double STEP = 0.1;           // Zbliżaj co 0.1 jednostki
+    const double STEP = 0.5;           // Zbliżaj co 0.1 jednostki
     const double MIN_DIST = 0.01;      // Granica zbliżania
     
     double best_distance = 1e9;  // "Nieskończoność"
@@ -297,3 +297,64 @@ double GreedyPacker::calculateGlobalSquareSide(
 }
 
 
+
+
+
+
+//do pso
+std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>>
+GreedyPacker::packTreesWithAngles(int num_trees, std::vector<float>& angles) {
+
+    // Vector umieszczonych choinek
+    std::vector<std::shared_ptr<ChristmasTree>> trees;
+    std::vector<double> sides_square; // boki kwadratów dla kazdej choinki
+    
+    if (num_trees == 0) return {trees, sides_square};
+    // Pierwsza choinka w (0,0)
+    //std::cout << "\n Umieszczanie choinki 0 w (0, 0) z katem 0" << std::endl;
+    auto tree0 = std::make_shared<ChristmasTree>(0.0, 0.0, angles[0]);
+    trees.push_back(tree0);
+    double current_side0 = calculateGlobalSquareSide(trees, tree0);
+    sides_square.push_back(current_side0);
+    const auto* env = tree0->getEnvelope();
+    // std::cout << " Pierwsza choinka umieszczona. Ramka ograniczajaca: ["
+    //           << std::fixed << std::setprecision(2)
+    //           << env->getMinX() << ", " << env->getMinY() << "] - ["
+    //           << env->getMaxX() << ", " << env->getMaxY() << "]"
+    //           << std::endl;
+
+    
+    if (num_trees == 1) return {trees, sides_square};
+
+
+
+
+    // Główna pętla -- kolejne choinki
+    for (int i = 1; i < num_trees; i++) {
+        // std::cout << "\n Szukanie pozycji dla choinki " << i << std::endl;
+        
+        // Tworzymy choinkę tymczasowo w (0, 0) z kątem 0
+        auto new_tree = std::make_shared<ChristmasTree>(0.0, 0.0, 0.0);
+        
+        // Szukamy najlepszej pozycji (bez zmiany kąta)
+        // std::cout << " Choinka" << i << std::endl;
+        auto [best_x, best_y] = findBestPosition(new_tree, trees);
+        
+        // Ustawiamy znalezioną pozycję
+        new_tree->setPosition(best_x, best_y);
+
+        // Kąt z pso
+        new_tree->setAngle(angles[i]);
+        
+        trees.push_back(new_tree);
+        double current_side = calculateGlobalSquareSide(trees, new_tree);
+        sides_square.push_back(current_side);
+
+        
+        // std::cout << " Umieszczona w (" 
+                //   << std::fixed << std::setprecision(2) 
+                //   << best_x << ", " << best_y << ")" << std::endl;
+    }
+    
+    return {trees, sides_square};
+}
