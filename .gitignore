@@ -16,3 +16,6 @@ geos_cpp_tutorial.md
 opis.md
 .vs/
 CMakeLists.txt
+plots_DE
+data/
+santa2025.py

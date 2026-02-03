@@ -116,7 +116,8 @@ def plot_results(side_length, placed_trees, num_trees, save_path=None):
     ax.set_ylim(square_y - padding, square_y + side_length + padding)
     ax.set_aspect('equal', adjustable='box')
     ax.axis('off')
-    ax.set_title(f'{num_trees} Trees | Side: {side_length:.6f}', 
+    score = side_length**2/num_trees
+    ax.set_title(f'Score: {score:.3f}', 
                 fontsize=14, fontweight='bold')
     plt.tight_layout()
     if save_path:
@@ -141,15 +142,15 @@ def plot_cpp_results(csv_filename):
     placed_trees = []
     for idx, row in df.iterrows():
         tree = ChristmasTree(
-            center_x=str(row['center_x']),
-            center_y=str(row['center_y']),
-            angle=str(row['angle'])
+            center_x=str(row['tree_x']),
+            center_y=str(row['tree_y']),
+            angle=str(row['tree_angle'])
         )
         placed_trees.append(tree)
     
     # liczene  długości boku
     base_name = os.path.basename(csv_filename).replace('.csv', '.png')
-    save_dir = 'data/output_plots' 
+    save_dir = 'data/output_plots/TS' 
     img_path = os.path.join(save_dir, base_name)
     side_length = calculate_side_length(placed_trees)
     
@@ -158,12 +159,88 @@ def plot_cpp_results(csv_filename):
     
     print(f"Side length: {side_length:.12f}")
 
-# plot_cpp_results('results.csv')
+
+
+
+        
+def plot_iteration_scores_DE(file_path, configs=None, output_dir='plots_DE/100config', 
+                             plot_type='all'):
+    """
+    Tworzenie wykresów dla DE
+    
+    plot_type : 
+        - 'best': tylko najlepszy fitness
+        - 'all': wszystkie trzy na jednym wykresie
+  """
+    
+    df = pd.read_csv(file_path)
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    if configs is None:
+        configs = df['config'].unique()
+    
+    for config_num in configs:
+
+        config_data = df[df['config'] == config_num].copy()
+        
+        if config_data.empty:
+            print(f"Brak danych dla konfiguracji {config_num}")
+            continue
+        
+        if plot_type  == 'all':
+            plt.figure(figsize=(10, 6))
+            
+            plt.plot(config_data['iteration'], config_data['best_fitness'], linewidth=2, color='#2E86AB', label='Best fitness')
+                
+            plt.plot(config_data['iteration'], config_data['worst_fitness'], linewidth=2, color='#D62828', label='Worst fitness')
+                
+            plt.plot(config_data['iteration'], config_data['avg_fitness'], linewidth=2, color='#F77F00', label='Avg fitness')
+                
+
+            
+            plt.xlabel('Iteracja', fontsize=18, fontweight='bold')
+            plt.ylabel('Wartość fitness', fontsize=18, fontweight='bold')
+
+            plt.grid(True, alpha=0.3, linestyle='--')
+            plt.legend(loc='best', fontsize=15)
+            
+            output_file = os.path.join(output_dir, f'DE_config_{config_num}_{plot_type}.eps')
+            plt.tight_layout()
+            plt.savefig(output_file, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print(f"Zapisano wykres: {output_file}")
+ 
+        if plot_type == 'best':
+            plt.figure(figsize=(10, 6))
+            plt.plot(config_data['iteration'], config_data['best_fitness'], linewidth=2, color='#2E86AB')
+            
+            plt.xlabel('Iteracja', fontsize=18, fontweight='bold')
+            plt.ylabel('Wartość fitness', fontsize=18, fontweight='bold')
+
+            plt.grid(True, alpha=0.3, linestyle='--')
+            
+            plt.legend(loc='best', fontsize = 15)
+            
+            output_file = os.path.join(output_dir, f'DE_config_{config_num}_best.eps')
+            plt.tight_layout()
+            plt.savefig(output_file, dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print(f"Zapisano wykres: {output_file}")
+
+
 
 if __name__ == '__main__':
 
-    csv_file_base = 'data/output_greedy/trees_1.csv'  
-    # for n in [1, 2, 3, 4, 5, 20, 50, 150, 200]:
-    for n in [5, 20, 50, 150, 200]:
-        csv_file = csv_file_base.replace('1', str(n))
-        plot_cpp_results(csv_file)
+    csv_file_base = 'data/ts_trees/finalTrees200CoordsLast.csv' 
+
+    reps =7
+    configs_score_file = f'data/de_output/de_iteration_stats_pop30_trees10_iter100_F0.7_CR0.8_final_{reps}.csv' 
+
+    # plot_iteration_scores_DE(configs_score_file, configs=[10], plot_type='best')
+    plot_cpp_results(csv_file_base)
+ 
+
+     

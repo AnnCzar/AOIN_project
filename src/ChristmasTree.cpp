@@ -13,7 +13,12 @@ ChristmasTree::ChristmasTree(double center_x, double center_y, double angle)
     
     // Utwórz fabrykę geometrii
     factory = GeometryFactory::create();
+
+    //OPTYMALIZACJA
+    rebuildRotatedPolygon();
+
     
+
     // tworzenie choinki w 0,0
     std::unique_ptr<Geometry> initial = buildInitialPolygon();
     // obracanie choinki o kąt
@@ -22,6 +27,14 @@ ChristmasTree::ChristmasTree(double center_x, double center_y, double angle)
                                this->center_x * scale_factor, 
                                this->center_y * scale_factor);
 }
+
+//OPTYMALIZACJA
+void ChristmasTree::rebuildRotatedPolygon() {
+    std::unique_ptr<Geometry> initial = buildInitialPolygon();
+    base_rotated_polygon = rotatePolygon(initial.get(), this->angle);
+    cached_angle = this->angle;
+}
+
 
 // zwraca wektor współrzędnych początkowych choinki, które potem są używane do budowy choinki
 std::vector<Coordinate> ChristmasTree::getInitialCoordinates() {
@@ -164,22 +177,54 @@ double ChristmasTree::getArea() const {
 }
 
 //ustawi nowa pozycje choinki
+//void ChristmasTree::setPosition(double new_center_x, double new_center_y) {
+//    center_x = new_center_x;
+//    center_y = new_center_y;
+//    
+//    std::unique_ptr<Geometry> initial = buildInitialPolygon(); // kosztowne
+//    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle); // kosztowne 
+//    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
+//}
+
+
+
+//OPTYMALIZACJA
 void ChristmasTree::setPosition(double new_center_x, double new_center_y) {
     center_x = new_center_x;
     center_y = new_center_y;
-    
-    std::unique_ptr<Geometry> initial = buildInitialPolygon();
-    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle);
-    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
+
+    polygon = translatePolygon(base_rotated_polygon.get(),
+        center_x * scale_factor,
+        center_y * scale_factor);
 }
 
+
+
 // ustawia nowy kąt obrotu choinki
+//void ChristmasTree::setAngle(double new_angle) {
+//    angle = new_angle;
+//    
+//    std::unique_ptr<Geometry> initial = buildInitialPolygon();
+//    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle);
+//    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
+//}
+
+
+//OPTYMALIZACJA
 void ChristmasTree::setAngle(double new_angle) {
+    // Skip jeśli kąt się nie zmienił
+    if (std::abs(new_angle - cached_angle) < 1e-9) {
+        return;
+    }
+
     angle = new_angle;
-    
-    std::unique_ptr<Geometry> initial = buildInitialPolygon();
-    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle);
-    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
+
+
+    rebuildRotatedPolygon();
+
+    polygon = translatePolygon(base_rotated_polygon.get(),
+        center_x * scale_factor,
+        center_y * scale_factor);
 }
 
 // przesuwa choinkę o dx i dy

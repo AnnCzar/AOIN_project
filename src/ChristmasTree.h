@@ -41,11 +41,23 @@ private:
     std::unique_ptr<Geometry> rotatePolygon(Geometry* geom, double angle_deg);
     std::unique_ptr<Geometry> translatePolygon(Geometry* geom, double dx, double dy);
     std::vector<Coordinate> getInitialCoordinates();
+
+    //OPTYMALIZACJA
+    std::unique_ptr<Geometry> base_rotated_polygon;
+    double cached_angle;
+    void rebuildRotatedPolygon();
+
+
+
     
 public:
     // Konstruktor
     ChristmasTree(double center_x = 0.0, double center_y = 0.0, double angle = 0.0);
+    ChristmasTree(ChristmasTree&& other) noexcept = default;
+    ChristmasTree& operator=(ChristmasTree&& other) noexcept = default;
     
+    ChristmasTree(const ChristmasTree&) = delete;
+    ChristmasTree& operator=(const ChristmasTree&) = delete;
     // Destruktor
     ~ChristmasTree() = default;
     
@@ -60,7 +72,7 @@ public:
     bool intersects(const ChristmasTree& other) const;
     bool contains(const Coordinate& point) const;
     double getArea() const;
-    
+
     // Settery / transformacje
     void setPosition(double new_center_x, double new_center_y);
     void setAngle(double new_angle);
@@ -68,6 +80,7 @@ public:
     void rotate(double new_angle);
 
     double getScaleFactor() const;
+
 
 };
 
