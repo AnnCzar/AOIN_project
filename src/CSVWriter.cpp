@@ -20,8 +20,6 @@ void CSVWriter::saveTreesToCSV(
              << trees[i]->getY() << ","
              << trees[i]->getAngle() << ","
              << sides_square[i] << "\n";
-        
-
     }
     
     file.close();

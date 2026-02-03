@@ -1,57 +1,237 @@
-#include "ChristmasTree.h"
 #include <iostream>
+#include <vector>
+#include <memory>
+#include <fstream>
 #include <iomanip>
 #include "GreedyPacker.h"
-#include "CSVWriter.h"
+#include "ChristmasTree.h"
+#include "simulated_annealing.h"
+#include "structures.h"
+#include "evaluation.h"
+#include <chrono>
+#include <sstream>
 
+using namespace std;
 
-int main(){
-
-    std::cout << "TESTY ChristmasTree ==================" << std::endl;
-
-    // choinka w (0,0) bez obrotu
-    ChristmasTree tree11(0.0, 0.0, 0.0);
-    std::cout << "tree1 (0,0,0):" << std::endl;
-    std::cout << "   Pole: " << tree11.getArea() << std::endl;
-
-    // 
-    const auto* env1 = tree11.getEnvelope();
-    std::cout << "   Ramka: [" 
-              << env1->getMinX() << "," << env1->getMaxX() 
-              << "," << env1->getMinY() << "," << env1->getMaxY() << "]" << std::endl;
+TreeSolution trees_to_solution(const vector<shared_ptr<ChristmasTree>>& trees, 
+                               const string& group_name) {
+    TreeSolution solution;
     
-    std::cout << std::endl;
-
-    std::cout << "TEST PRZECIEC ===" << std::endl;
-
-    ChristmasTree tree1(0.0, 0.0, 0.0);     // Środek
-    ChristmasTree tree2(0.1, 0.0, 0.0);     // Blisko – powinny się przecinać
-    ChristmasTree tree3(3.0, 0.0, 0.0);     // Daleko – nie przecinają się
-
-    std::cout << "tree1 intersects tree2: " << (tree1.intersects(tree2) ? "TAK" : "NIE") << std::endl;
-    std::cout << "tree1 intersects tree3: " << (tree1.intersects(tree3) ? "TAK" : "NIE") << std::endl;
+    for (const auto& tree : trees) {
+        solution.positions_x.push_back(tree->getX());
+        solution.positions_y.push_back(tree->getY());
+        solution.angles.push_back(tree->getAngle());
+    }
     
-    std::cout <<  "Greedy test - bez zmiany kata -- kat 0" << std::endl;
+    Evaluation eval;
+    solution.fitness = evaluate_tree_solution(solution, eval, group_name);
+    
+    return solution;
+}
 
-    int num_trees = 1;
-    std::cout << "\nPakowanie do pudla " << num_trees << " choinek..." << std::endl;
+string get_timestamp() {
+    auto now = chrono::system_clock::now();
+    auto time_t_now = chrono::system_clock::to_time_t(now);
+    stringstream ss;
+    ss << put_time(localtime(&time_t_now), "%Y%m%d_%H%M%S");
+    return ss.str();
+}
+
+vector<shared_ptr<ChristmasTree>> solution_to_trees(const TreeSolution& solution) {
+    vector<shared_ptr<ChristmasTree>> trees;
+    
+    for (size_t i = 0; i < solution.angles.size(); ++i) {
+        auto tree = make_shared<ChristmasTree>(
+            solution.positions_x[i],
+            solution.positions_y[i],
+            solution.angles[i]
+        );
+        trees.push_back(tree);
+    }
+    
+    return trees;
+}
+
+int calculate_max_iterations(int num_trees, int target_ffe = 3000) {
+    int neighborhood_size = 5;
+    
+    const int local_search_deltas = 6;
+    int local_search_ffe = num_trees * local_search_deltas;
+    
+    int max_iterations = (target_ffe - local_search_ffe) / neighborhood_size;
+        
+    return max_iterations;
+}
+
+int main() {
+
+    auto program_start = std::chrono::high_resolution_clock::now();
+    const int MAX_TREES = 200;
+    string timestamp = get_timestamp();
+    const int TARGET_FFE = 3000;
+
+    double T0 = 200.0;
+    double alpha = 0.98;
+    
+    ofstream scores_file("results/configuration_scores_" + timestamp + ".csv");
+    scores_file << "num_trees,greedy_score,sa_score,improvement,improvement_pct,time_seconds,max_iterations,actual_ffe\n";
+    
+    cout << "\n=== Running Greedy for " << MAX_TREES << " trees ===" << endl;
+    
     GreedyPacker packer;
-    auto result  = packer.packTrees(num_trees);
-    // rozdzielenie wyniku -- results to choinki i boki kwadratow
-    std::vector<std::shared_ptr<ChristmasTree>> trees = result.first;
-    std::vector<double> sides = result.second;
-    std::cout << "\nZapakowane" << std::endl;
+    auto result = packer.packTrees(MAX_TREES);
+    vector<shared_ptr<ChristmasTree>> all_greedy_trees = result.first;
+    
+    vector<TreeSolution> all_sa_solutions;
+    all_sa_solutions.reserve(MAX_TREES);
+    
+    double total_score_greedy = 0.0;
+    double total_score_sa = 0.0;
+    
+    for (int num_trees = 1; num_trees <= MAX_TREES; ++num_trees) {
+        cout << "\n=== Optimizing group " << num_trees << " trees ===" << endl;
+        
+        string group_name = "g" + to_string(num_trees);
+        
+        auto start_time = chrono::high_resolution_clock::now();
+        
+        vector<shared_ptr<ChristmasTree>> greedy_trees(
+            all_greedy_trees.begin(), 
+            all_greedy_trees.begin() + num_trees
+        );
+        
+        TreeSolution greedy_solution = trees_to_solution(greedy_trees, group_name);
+        
+        total_score_greedy += greedy_solution.fitness;
 
-    std::cout << "Zapis do pliku " << std::endl;
+        int max_iterations = calculate_max_iterations(num_trees, TARGET_FFE);
+        int neighborhood_size = 5;
+        int local_search_deltas = 6;
+        int actual_ffe = max_iterations * neighborhood_size + num_trees * local_search_deltas;
+        
+    
+        TreeSolution sa_solution = simulated_annealing(
+            greedy_solution,
+            num_trees,
+            T0,
+            alpha,
+            max_iterations, 
+            group_name
+        );
 
-    // CSVWriter::saveTreesToCSV(trees, "results_5.1.csv");  // zapis w głównym katalogu projektu
-    CSVWriter::saveTreesToCSV(trees, sides,  "../data/output_greedy/trees_square_1.csv"); // zapis w katalogu z wynikami -- wywołanie programu musi być z katalogu build
+        all_sa_solutions.push_back(sa_solution);
+        
+        total_score_sa += sa_solution.fitness;
+        
+        double improvement = greedy_solution.fitness - sa_solution.fitness;
+        double improvement_pct = 100.0 * improvement / greedy_solution.fitness;
+        
+        auto end_time = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time);
+        
+        scores_file << num_trees << ","
+                   << fixed << setprecision(6) << greedy_solution.fitness << ","
+                   << sa_solution.fitness << ","
+                   << improvement << ","
+                   << improvement_pct << ","
+                   << duration.count() << ","
+                   << max_iterations << ","    
+                   << actual_ffe << "\n";        
+        scores_file.flush();  
+        
+        if (num_trees % 10 == 0 || num_trees == MAX_TREES) {
+            cout << "\n--- Progress: " << num_trees << "/" << MAX_TREES << " completed ---" << endl;
+            cout << "Current cumulative greedy score: " << fixed << setprecision(6) << total_score_greedy << endl;
+            cout << "Current cumulative SA score:     " << total_score_sa << endl;
+            cout << "Current cumulative improvement:  " << (total_score_greedy - total_score_sa) 
+                 << " (" << (100.0 * (total_score_greedy - total_score_sa) / total_score_greedy) << "%)" << endl;
+        }
+    }
+    
+    scores_file.close();
+    
+string sa_filename = "submission_sa_" + timestamp + ".csv";
+ofstream sa_file(sa_filename);
+sa_file << "id,x,y,deg\n";
 
-    std::cout << "Koniec" << std::endl;
+for (int config = 0; config < MAX_TREES; ++config) {
+    int num_trees = config + 1;
+    const TreeSolution& solution = all_sa_solutions[config];
+    
+    stringstream group_ss;
+    group_ss << setfill('0') << setw(3) << num_trees;
+    string group_id = group_ss.str();
+    
+    for (int tree_idx = 0; tree_idx < num_trees; ++tree_idx) {
+        sa_file << group_id << "_" << tree_idx << ","
+               << "s" << fixed << setprecision(6)  
+               << solution.positions_x[tree_idx] << ","
+               << "s" << solution.positions_y[tree_idx] << ","  
+               << "s" << solution.angles[tree_idx] << "\n";     
+    }
+}
+sa_file.close();
 
+string greedy_filename = "submission_greedy_" + timestamp + ".csv";
+ofstream greedy_file(greedy_filename);
+greedy_file << "id,x,y,deg\n";
 
+for (int config = 0; config < MAX_TREES; ++config) {
+    int num_trees = config + 1;
+    
+    stringstream group_ss;
+    group_ss << setfill('0') << setw(3) << num_trees;
+    string group_id = group_ss.str();
+    
+    for (int tree_idx = 0; tree_idx < num_trees; ++tree_idx) {
+        const auto& tree = all_greedy_trees[tree_idx];
+        greedy_file << group_id << "_" << tree_idx << ","
+                   << "s" << fixed << setprecision(6)  
+                   << tree->getX() << ","
+                   << "s" << tree->getY() << ","        
+                   << "s" << tree->getAngle() << "\n"; 
+    }
+}
+greedy_file.close();
+    
+    cout << fixed << setprecision(6);
+    cout << "GREEDY TOTAL SCORE: " << total_score_greedy << endl;
+    cout << "SA TOTAL SCORE:     " << total_score_sa << endl;
+    
+    double total_improvement = total_score_greedy - total_score_sa;
+    double total_improvement_pct = 100.0 * total_improvement / total_score_greedy;
+    
+    cout << "\nTOTAL IMPROVEMENT:  " << total_improvement 
+         << " (" << total_improvement_pct << "%)" << endl;
+    
+    
+    try {
+        Evaluation eval;
+        
+        auto submission_greedy = eval.loadSubmissionFile(greedy_filename);
+        double score_greedy_file = eval.evaluation_score(submission_greedy);
+        cout << "Greedy from file:   " << score_greedy_file << endl;
+        cout << "Greedy from sum:    " << total_score_greedy << endl;
+        cout << "Difference:         " << abs(score_greedy_file - total_score_greedy) << endl;
+        
+        
+        cout << endl;
+        
+        auto submission_sa = eval.loadSubmissionFile(sa_filename);
+        double score_sa_file = eval.evaluation_score(submission_sa);
+        cout << "SA from file:       " << score_sa_file << endl;
+        cout << "SA from sum:        " << total_score_sa << endl;
+        cout << "Difference:         " << abs(score_sa_file - total_score_sa) << endl;
+        
+
+        auto program_end = std::chrono::high_resolution_clock::now();
+        auto total_duration = std::chrono::duration_cast<std::chrono::seconds>(program_end - program_start);
+        
+        cout << "Total time: " << total_duration.count() << endl;
+        
+    } catch (const exception& e) {
+        cerr << "Error during verification: " << e.what() << endl;
+    }
+    
     return 0;
-
-
-
 }

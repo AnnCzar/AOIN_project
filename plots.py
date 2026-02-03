@@ -116,7 +116,8 @@ def plot_results(side_length, placed_trees, num_trees, save_path=None):
     ax.set_ylim(square_y - padding, square_y + side_length + padding)
     ax.set_aspect('equal', adjustable='box')
     ax.axis('off')
-    ax.set_title(f'{num_trees} Trees | Side: {side_length:.6f}', 
+    score = side_length**2/num_trees
+    ax.set_title(f'Score: {score:.3f}', 
                 fontsize=14, fontweight='bold')
     plt.tight_layout()
     if save_path:
@@ -149,7 +150,7 @@ def plot_cpp_results(csv_filename):
     
     # liczene  długości boku
     base_name = os.path.basename(csv_filename).replace('.csv', '.png')
-    save_dir = 'data/output_plots' 
+    save_dir = 'data/output_plots/sa200' 
     img_path = os.path.join(save_dir, base_name)
     side_length = calculate_side_length(placed_trees)
     
@@ -157,13 +158,17 @@ def plot_cpp_results(csv_filename):
     plot_results(side_length, placed_trees, len(placed_trees), save_path=img_path)
     
     print(f"Side length: {side_length:.12f}")
+ 
 
-# plot_cpp_results('results.csv')
+plot_cpp_results('greedy_10.csv')
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    csv_file_base = 'data/output_greedy/trees_1.csv'  
-    # for n in [1, 2, 3, 4, 5, 20, 50, 150, 200]:
-    for n in [5, 20, 50, 150, 200]:
-        csv_file = csv_file_base.replace('1', str(n))
-        plot_cpp_results(csv_file)
+#     csv_file_base = 'output1.csv'  
+#     # for n in [1, 2, 3, 4, 5, 20, 50, 150, 200]:
+#     for n in [5, 20, 50, 150, 200]:
+#         csv_file = csv_file_base.replace('1', str(n))
+#         plot_cpp_results(csv_file)
+
+
+

@@ -5,15 +5,14 @@
 #include <cmath>
 
 using namespace std;
-// Stała: PI do konwersji stopni na radiany
 static constexpr double PI = 3.14159265358979323846;
 
 ChristmasTree::ChristmasTree(double center_x, double center_y, double angle)
     : center_x(center_x), center_y(center_y), angle(angle) {
-    
-    // Utwórz fabrykę geometrii
     factory = GeometryFactory::create();
-    
+
+    rebuildRotatedPolygon();    
+
     // tworzenie choinki w 0,0
     std::unique_ptr<Geometry> initial = buildInitialPolygon();
     // obracanie choinki o kąt
@@ -22,8 +21,12 @@ ChristmasTree::ChristmasTree(double center_x, double center_y, double angle)
                                this->center_x * scale_factor, 
                                this->center_y * scale_factor);
 }
+void ChristmasTree::rebuildRotatedPolygon() {
+    std::unique_ptr<Geometry> initial = buildInitialPolygon();
+    base_rotated_polygon = rotatePolygon(initial.get(), this->angle);
+    cached_angle = this->angle;
+}
 
-// zwraca wektor współrzędnych początkowych choinki, które potem są używane do budowy choinki
 std::vector<Coordinate> ChristmasTree::getInitialCoordinates() {
     std::vector<Coordinate> coords;
     double sf = scale_factor;
@@ -65,31 +68,25 @@ std::vector<Coordinate> ChristmasTree::getInitialCoordinates() {
     return coords;
 }
 
-// budowanie wielokąta -- choinki
 std::unique_ptr<Geometry> ChristmasTree::buildInitialPolygon() {
     std::vector<Coordinate> coords = getInitialCoordinates(); // 15 punktów
     
-    // tworzymy sekwencje +1 punkt, aby zamknąć pętlę
     std::unique_ptr<CoordinateSequence> coord_seq(
         new CoordinateSequence(coords.size() + 1, 2)
     );
     
-    // wstawiaanie współrzędnych do sekwencji
     for (std::size_t i = 0; i < coords.size(); ++i) {
         coord_seq->setAt(coords[i], i);
     }
     
-    // zamkniecie pętli
     coord_seq->setAt(coords[0], coords.size());
     
-    // tworzenie krawedzi
     std::unique_ptr<LinearRing> ring(factory->createLinearRing(std::move(coord_seq)));
     std::unique_ptr<Geometry> poly(factory->createPolygon(std::move(ring)));
     
     return poly;
 }
 
-// obracanie wielokąta
 std::unique_ptr<Geometry> ChristmasTree::rotatePolygon(Geometry* geom, double angle_deg) {
     double angle_rad = angle_deg * PI / 180.0;
     double cos_a = std::cos(angle_rad);
@@ -102,7 +99,6 @@ std::unique_ptr<Geometry> ChristmasTree::rotatePolygon(Geometry* geom, double an
         new CoordinateSequence(n, 2)
     );
     
-    // transformacja każdego punktu choinki (macierz rotacji)
     for (std::size_t i = 0; i < n; ++i) {
         const Coordinate& c = old_seq->getAt(i);
         double nx = c.x * cos_a - c.y * sin_a;
@@ -116,7 +112,6 @@ std::unique_ptr<Geometry> ChristmasTree::rotatePolygon(Geometry* geom, double an
     return poly;
 }
 
-// przesuwanie wielokąta np o dx lub dy
 std::unique_ptr<Geometry> ChristmasTree::translatePolygon(Geometry* geom, double dx, double dy) {
     std::unique_ptr<CoordinateSequence> old_seq = geom->getCoordinates();
     std::size_t n = old_seq->size();
@@ -125,7 +120,6 @@ std::unique_ptr<Geometry> ChristmasTree::translatePolygon(Geometry* geom, double
         new CoordinateSequence(n, 2)
     );
     
-    // Przesuń każdy punkt
     for (std::size_t i = 0; i < n; ++i) {
         const Coordinate& c = old_seq->getAt(i);
         new_seq->setAt(Coordinate(c.x + dx, c.y + dy), i);
@@ -147,39 +141,42 @@ const geos::geom::Envelope* ChristmasTree::getEnvelope() const {
 }
 
 
-// sprawdzanie czy choinka przecina sie z innymi
+// do kolizji
 bool ChristmasTree::intersects(const ChristmasTree& other) const {
     return polygon->intersects(other.polygon.get());
 }
 
-// spawdzenie czy dany punkt leży wewnątrz choinki
 bool ChristmasTree::contains(const Coordinate& point) const {
     std::unique_ptr<Geometry> point_geom(factory->createPoint(point));
     return polygon->contains(point_geom.get());
 }
 
-// zwraca pole powierzchni choinki
 double ChristmasTree::getArea() const {
     return polygon->getArea();
 }
 
-//ustawi nowa pozycje choinki
 void ChristmasTree::setPosition(double new_center_x, double new_center_y) {
     center_x = new_center_x;
     center_y = new_center_y;
-    
-    std::unique_ptr<Geometry> initial = buildInitialPolygon();
-    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle);
-    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
-}
 
-// ustawia nowy kąt obrotu choinki
+    polygon = translatePolygon(base_rotated_polygon.get(),
+        center_x * scale_factor,
+        center_y * scale_factor);
+}
 void ChristmasTree::setAngle(double new_angle) {
+    // Skip jeśli kąt się nie zmienił
+    if (std::abs(new_angle - cached_angle) < 1e-9) {
+        return;
+    }
+
     angle = new_angle;
-    
-    std::unique_ptr<Geometry> initial = buildInitialPolygon();
-    std::unique_ptr<Geometry> rotated = rotatePolygon(initial.get(), angle);
-    polygon = translatePolygon(rotated.get(), center_x * scale_factor, center_y * scale_factor);
+
+
+    rebuildRotatedPolygon();
+
+    polygon = translatePolygon(base_rotated_polygon.get(),
+        center_x * scale_factor,
+        center_y * scale_factor);
 }
 
 // przesuwa choinkę o dx i dy

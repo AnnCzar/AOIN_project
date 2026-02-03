@@ -16,3 +16,10 @@ geos_cpp_tutorial.md
 opis.md
 .vs/
 CMakeLists.txt
+*.csv
+*.txt
+proba.csv
+converter.py
+results/
+*.png
+data/
