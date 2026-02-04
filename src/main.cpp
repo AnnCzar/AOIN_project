@@ -3,55 +3,56 @@
 #include <iomanip>
 #include "GreedyPacker.h"
 #include "CSVWriter.h"
+#include "Pso.h"
+#include <chrono>
+#include <chrono>
+#include <fstream>
+#include "Tabu.h"
 
 
 int main(){
 
-    std::cout << "TESTY ChristmasTree ==================" << std::endl;
 
-    // choinka w (0,0) bez obrotu
-    ChristmasTree tree11(0.0, 0.0, 0.0);
-    std::cout << "tree1 (0,0,0):" << std::endl;
-    std::cout << "   Pole: " << tree11.getArea() << std::endl;
+    /// Tabu - wyniki dla n=10,50,100,200; FFE = 3k
 
-    // 
-    const auto* env1 = tree11.getEnvelope();
-    std::cout << "   Ramka: [" 
-              << env1->getMinX() << "," << env1->getMaxX() 
-              << "," << env1->getMinY() << "," << env1->getMaxY() << "]" << std::endl;
+
+        int runsPerTest = 10;
+        int numberOfIterations = 200;
+        int tabuListLength = 8;
+        float ballRadius = 1.8; //10%
+        int neighborhoodSize = 15;
+        GreedyPacker packer;
+        int seed = 9;
+        double sigma = 15;
+        int numberOfTrees =50;
+        int k = 5;
+        //k = 10, tLL=12 dla 100
+        //k = 5, tLL=8 dla 50 (zobacz 10 też)
+        //k = 1, tLL=4 dla 10 
+
+    Tabu tabu(numberOfIterations, tabuListLength, neighborhoodSize, ballRadius, packer, seed);
+    TabuFullHistory result = tabu.algorithmWithScoresKFinal(numberOfTrees, sigma, k);
+
+    std::ofstream treeFile("../my_results/finalResults/finalTrees10Coords.csv");
+    if (treeFile.is_open()) {
+        treeFile << "tree_x,tree_y,tree_angle\n";
+        for (const auto& t : result.trees) {
+            treeFile << t.x << "," << t.y << "," << t.angle << "\n";
+        }
+        treeFile.close();
+    }
+
+    std::ofstream scoreFile("../my_results/finalResults/finalTrees10Plot.csv");
+    if (scoreFile.is_open()) {
+        scoreFile << "iteration,global_best,current_score\n";
+        for (const auto& s : result.scores) {
+            scoreFile << s.iteration << "," << s.globalBestScore << "," << s.iterationBestScore << "\n";
+        }
+        scoreFile.close();
+    }
     
-    std::cout << std::endl;
-
-    std::cout << "TEST PRZECIEC ===" << std::endl;
-
-    ChristmasTree tree1(0.0, 0.0, 0.0);     // Środek
-    ChristmasTree tree2(0.1, 0.0, 0.0);     // Blisko – powinny się przecinać
-    ChristmasTree tree3(3.0, 0.0, 0.0);     // Daleko – nie przecinają się
-
-    std::cout << "tree1 intersects tree2: " << (tree1.intersects(tree2) ? "TAK" : "NIE") << std::endl;
-    std::cout << "tree1 intersects tree3: " << (tree1.intersects(tree3) ? "TAK" : "NIE") << std::endl;
-    
-    std::cout <<  "Greedy test - bez zmiany kata -- kat 0" << std::endl;
-
-    int num_trees = 1;
-    std::cout << "\nPakowanie do pudla " << num_trees << " choinek..." << std::endl;
-    GreedyPacker packer;
-    auto result  = packer.packTrees(num_trees);
-    // rozdzielenie wyniku -- results to choinki i boki kwadratow
-    std::vector<std::shared_ptr<ChristmasTree>> trees = result.first;
-    std::vector<double> sides = result.second;
-    std::cout << "\nZapakowane" << std::endl;
-
-    std::cout << "Zapis do pliku " << std::endl;
-
-    // CSVWriter::saveTreesToCSV(trees, "results_5.1.csv");  // zapis w głównym katalogu projektu
-    CSVWriter::saveTreesToCSV(trees, sides,  "../data/output_greedy/trees_square_1.csv"); // zapis w katalogu z wynikami -- wywołanie programu musi być z katalogu build
-
-    std::cout << "Koniec" << std::endl;
-
-
     return 0;
-
-
-
 }
+
+
+
