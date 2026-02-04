@@ -1,7 +1,7 @@
 # Algorytmy optymalizacji inspirowane naturą
 ## Christmas Tree Packing Challenge
 
-Projekt implementuje kilka metaheurystyk dla problemu upakowania choinek w jak najmniejszym kwadratowym pudełku (Kaggle: *Santa 2025 – Christmas Tree Packing Challenge*). Przestrzeń rozwiązań jest ciągła – położenia choinek opisują współrzędne \((x,y)\) oraz kąty obrotu w stopniach.
+Projekt implementuje kilka metaheurystyk dla problemu upakowania choinek w jak najmniejszym kwadratowym pudełku (Kaggle: *Santa 2025 – Christmas Tree Packing Challenge*). Przestrzeń rozwiązań jest ciągła – położenia choinek opisują współrzędne \(x,y\) oraz kąty obrotu w stopniach.
 
 Zaimplementowane metody:
 - algorytm zachłanny (Greedy),
