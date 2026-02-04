@@ -1,6 +1,7 @@
 #include "submission_file.h"
 #include <iostream>
 #include <sstream>  
+
 void submissionFile::saveTreesToCSV(
     const std::vector<std::vector<std::shared_ptr<ChristmasTree>>>& all_groups,
     const std::string& filename) {
@@ -12,11 +13,9 @@ void submissionFile::saveTreesToCSV(
         return;
     }
     
-    // header w pliku
+
     file << "id,x,y,deg\n";
 
-
-    // dane choinek
     for (size_t n = 0; n < all_groups.size(); n++) {
         const auto& group = all_groups[n];
 
@@ -35,7 +34,7 @@ void submissionFile::saveTreesToCSV(
             file << "s" << std::fixed << std::setprecision(6) << tree->getX() << ",";
             file << "s" << std::fixed << std::setprecision(6) << tree->getY() << ",";
             file << "s" << std::fixed << std::setprecision(6) << tree->getAngle() << "\n";
-           
+
         }
     }
     
@@ -136,31 +135,6 @@ void submissionFile::saveIterationScores(const std::string& filename,
     file.close();
 }
 
-// /**
-//  * zaspis score dla każdej konfiguracji + suma pozostałych
-//  */
-// void submissionFile::saveConfigScoresWithSum( const std::string& filename, const std::vector<double>& config_scores) {
-    
-//     std::ofstream file(filename);
-    
-//     if (!file.is_open()) {
-//         std::cerr << "Nie można otworzyć pliku: " << filename << std::endl;
-//         return;
-//     }
-//     file << "config,score,sum_score\n";
-    
-//     double sum = 0.0;
-    
-//     for (int i = 0; i < config_scores.size(); ++i) {
-//         sum += config_scores[i];
-        
-//         file << (i + 1) << ","
-//              << std::fixed << std::setprecision(6) << config_scores[i] << ","
-//              << std::fixed << std::setprecision(6) << sum << "\n";
-//     }
-//     file.close();
-
-// }
 
 /**
  * Zapis score dla każdej konfiguracji + suma
@@ -225,3 +199,4 @@ void submissionFile::saveIterationScoresExtended(
     file.close();
     std::cout << "Zapisano rozszerzone statystyki iteracji do: " << filename << std::endl;
 }
+

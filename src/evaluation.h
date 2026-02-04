@@ -6,6 +6,10 @@
 #include "submission_file.h"
 #include <string>
 
+using namespace std;
+
+
+
 class Evaluation {
 public:
     double evaluation_score(const std::vector<SubmissionRow>& submission); 

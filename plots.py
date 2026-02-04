@@ -150,7 +150,10 @@ def plot_cpp_results(csv_filename):
     
     # liczene  długości boku
     base_name = os.path.basename(csv_filename).replace('.csv', '.png')
-    save_dir = 'data/output_plots/TS' 
+
+    save_dir = 'data/output_plots/TS'  # CHANGE PATH
+#     save_dir = 'data/output_plots/sa200' 
+
     img_path = os.path.join(save_dir, base_name)
     side_length = calculate_side_length(placed_trees)
     
@@ -158,11 +161,11 @@ def plot_cpp_results(csv_filename):
     plot_results(side_length, placed_trees, len(placed_trees), save_path=img_path)
     
     print(f"Side length: {side_length:.12f}")
+ 
 
+plot_cpp_results('greedy_10.csv')
 
-
-
-        
+       
 def plot_iteration_scores_DE(file_path, configs=None, output_dir='plots_DE/100config', 
                              plot_type='all'):
     """
@@ -232,6 +235,7 @@ def plot_iteration_scores_DE(file_path, configs=None, output_dir='plots_DE/100co
 
 
 
+
 if __name__ == '__main__':
 
     csv_file_base = 'data/ts_trees/finalTrees200CoordsLast.csv' 
@@ -244,3 +248,4 @@ if __name__ == '__main__':
  
 
      
+

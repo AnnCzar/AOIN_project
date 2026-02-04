@@ -1,4 +1,3 @@
-
 #ifndef CHRISTMAS_TREE_H
 #define CHRISTMAS_TREE_H
 
@@ -13,18 +12,14 @@ using namespace geos::geom;
 
 class ChristmasTree {
 private:
-    // Parametry pozycji i rotacji
     double center_x;
     double center_y;
     double angle;  // w stopniach
     
-    // Fabryka geometrii (współdzielona)
     std::shared_ptr<GeometryFactory> factory;
     
-    // Wielokąt reprezentujący chinkę
     std::unique_ptr<Geometry> polygon;
     
-    // arametry wymiarów choinki
     static constexpr double scale_factor = 1000.0;
     static constexpr double trunk_w = 0.15;
     static constexpr double trunk_h = 0.2;
@@ -48,8 +43,6 @@ private:
     void rebuildRotatedPolygon();
 
 
-
-    
 public:
     // Konstruktor
     ChristmasTree(double center_x = 0.0, double center_y = 0.0, double angle = 0.0);
