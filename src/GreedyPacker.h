@@ -14,6 +14,8 @@ public:
 
     std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> 
     packTrees(int num_trees);
+    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> 
+    packTreesWithAngles(int num_trees, std::vector<float>& angles);
 
     double packWithFixedAngles(const std::vector<double>& normalized_angles);
     double packWithFixedAnglesWindow(
