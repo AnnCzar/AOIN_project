@@ -15,7 +15,7 @@ __pycache__/
 geos_cpp_tutorial.md
 opis.md
 .vs/
-CMakeLists.txt
+
 
 plots_DE
 santa2025.py
@@ -25,5 +25,5 @@ proba.csv
 converter.py
 results/
 *.png
-data/
+
 

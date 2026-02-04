@@ -14,10 +14,26 @@ public:
 
     std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> 
     packTrees(int num_trees);
-    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> 
-    packTreesWithAngles(int num_trees, std::vector<float>& angles);
+    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>>
+    packTreesWithFixedAngles(const std::vector<float>& angles);
+    struct PackedResult {
+        std::vector<std::shared_ptr<ChristmasTree>> trees;
+        double square_side;
+    };
+    std::pair<double, double> findBestPositionOptimized(
+        const std::shared_ptr<ChristmasTree>&,
+        const std::vector<std::shared_ptr<ChristmasTree>>&,
+        const SpatialHash& spatial_hash);
+    double findBestAngleOptimized(
+        const std::shared_ptr<ChristmasTree>&,
+        const std::vector<std::shared_ptr<ChristmasTree>>&,
+        const SpatialHash& spatial_hash);
+    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>> packTreesDifferentStart(int num_trees, double sigma);
+    double tryMoveCloserOptimized(
+       const std::shared_ptr<ChristmasTree>&,
+       const std::vector<std::shared_ptr<ChristmasTree>>&,
+       const SpatialHash& spatial_hash);
 
-    double packWithFixedAngles(const std::vector<double>& normalized_angles);
     double packWithFixedAnglesWindow(
     const std::vector<float>& normalized_angles,
     int current_config,
@@ -25,13 +41,14 @@ public:
     const std::vector<std::vector<std::pair<double, double>>>& frozen_positions,
     std::vector<std::pair<double, double>>& updated_positions);
 
-
-    std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>>
-    packTreesWithFixedAnglesSA(const std::vector<double>& angles);
-    struct PackedResult {
-        std::vector<std::shared_ptr<ChristmasTree>> trees;
-        double square_side;
-    };
+    // SA -- odkomentowac  --
+    // std::pair<std::vector<std::shared_ptr<ChristmasTree>>, std::vector<double>>
+    // packTreesWithFixedAnglesSA(const std::vector<double>& angles);
+    // struct PackedResult {
+    //     std::vector<std::shared_ptr<ChristmasTree>> trees;
+    //     double square_side;
+    // };
+    // SA -- odkomentowac  -- koniec
     
 
 private:
@@ -52,11 +69,21 @@ private:
     double findBestAngle(
         const std::shared_ptr<ChristmasTree>&,
         const std::vector<std::shared_ptr<ChristmasTree>>&);
-     double tryMoveCloser(
-        const std::shared_ptr<ChristmasTree>&,
-        const std::vector<std::shared_ptr<ChristmasTree>>&,
-        const SpatialHash& spatial_hash); 
-                                
+
+
+    // SA -- odkomentowac
+     // double tryMoveCloser(
+     //    const std::shared_ptr<ChristmasTree>&,
+     //    const std::vector<std::shared_ptr<ChristmasTree>>&,
+     //    const SpatialHash& spatial_hash);
+    // SA -- odkomentowac  -- koniec
+
+
+    // DE -- odkomentowac
+    double tryMoveCloser(const std::shared_ptr<ChristmasTree>& new_tree,
+                 const std::vector<std::shared_ptr<ChristmasTree>>& placed);
+
+    // DE -- odkomentowac  -- koniec
 
 };
 

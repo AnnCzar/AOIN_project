@@ -32,13 +32,6 @@ void ChristmasTree::rebuildRotatedPolygon() {
 }
 
 
-//OPTYMALIZACJA
-void ChristmasTree::rebuildRotatedPolygon() {
-    std::unique_ptr<Geometry> initial = buildInitialPolygon();
-    base_rotated_polygon = rotatePolygon(initial.get(), this->angle);
-    cached_angle = this->angle;
-}
-
 // zwraca wektor współrzędnych początkowych choinki, które potem są używane do budowy choinki
 
 std::vector<Coordinate> ChristmasTree::getInitialCoordinates() {
