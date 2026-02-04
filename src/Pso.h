@@ -9,6 +9,17 @@
 #include <random>
 
 
+
+struct PsoMetrics {
+    float globalBestScore;
+    float iterationBestScore;
+    float globalWorstScore;
+
+    PsoMetrics(double globalBestScore, double iterationBestScore, double globalWorstScore) 
+        : globalBestScore(globalBestScore), iterationBestScore(iterationBestScore), globalWorstScore(globalWorstScore) {}
+};
+
+
 class Pso{
 
 public:
@@ -27,6 +38,7 @@ public:
     std::vector<float> globalSecondBest;
     float globalBestScore;
     float globalSecondBestScore;
+    float globalWorstScore;
     double inertia_weight;
     double inertia_weight_max = 0.9;
     double inertia_weight_min = 0.4;
@@ -41,12 +53,15 @@ public:
     void updateGlobalBest(std::vector<float>& position, float globalBestScore);
 
 
-    double evaluateFitness(int num_trees, std::vector<float>& position);
+    double evaluateFitness(std::vector<float>& position);
 
     std::vector<float> calculateNewPosition(PsoParticle& particle);
     std::vector<float> calculateNewVelocity(PsoParticle& particle);
     std::vector<float> calculateNewVelocityImproved(PsoParticle& particle);
     void updateInertiaWeight(int iteration);
+    std::vector<PsoMetrics> algorithmWithScores(int num_trees);
+    std::vector<PsoMetrics> algorithmImprovedWithScores(int num_trees, double P);
+
 
 private:
    PsoParticle initializeParticle(int num_trees);

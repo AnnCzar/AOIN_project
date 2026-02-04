@@ -5,6 +5,8 @@
 #include <iomanip>
 
 
+
+
 Pso::Pso(double inertia_weight, double inertia_weight_max, double inertia_weight_min,
          double acc_c_1, double acc_c_2, int number_of_particles,
         int number_of_iterations, GreedyPacker packer, int seed) : inertia_weight(inertia_weight),
@@ -44,10 +46,16 @@ PsoParticle Pso::initializeParticle(int num_trees){ //seed?
 }
 
 
-double Pso::evaluateFitness(int num_trees, std::vector<float>& position) {
-    auto [trees, squares] = packer.packTreesWithAngles(num_trees, position);
+double Pso::evaluateFitness(std::vector<float>& position) {
+   auto [trees, squares] = packer.packTreesWithFixedAngles(position);
 
-    return squares.back();
+    double totalScore = 0.0;
+    for (size_t n = 0; n < squares.size(); ++n) {
+        double side = squares[n];
+        totalScore += (side * side) / (n + 1);
+    }
+
+    return static_cast<float>(totalScore);
 }
 
 std::vector<float> Pso::calculateNewPosition(PsoParticle& particle){
@@ -116,7 +124,7 @@ std::vector<float> Pso::algorithm(int num_trees) {
     //losowa inicjalizacja cząstek i globalBest
     for(int i=0; i<number_of_particles; i++){
         swarm.push_back(initializeParticle(num_trees));
-        double score = evaluateFitness(num_trees, swarm[i].getPosition());
+        double score = evaluateFitness(swarm[i].getPosition());
         if(score<=globalBestScore){
             globalBestScore=score;
             globalBest=swarm[i].getPosition();
@@ -129,7 +137,7 @@ std::vector<float> Pso::algorithm(int num_trees) {
         for(int i=0; i<number_of_particles; i++){
 
             std::vector<float> position = swarm[i].getPosition(); //z sąsiedztwa?
-            double score = evaluateFitness(num_trees, position);
+            double score = evaluateFitness(position);
 
             if(score<=swarm[i].getPersonalBestScore()){
                 swarm[i].updatePersonalBest(position,score);
@@ -159,6 +167,69 @@ std::vector<float> Pso::algorithm(int num_trees) {
     
 }
 
+std::vector<PsoMetrics> Pso::algorithmWithScores(int num_trees) {
+
+    std::vector<PsoParticle> swarm;
+    std::vector<PsoMetrics> history;
+
+    globalBestScore = std::numeric_limits<float>::infinity();
+    globalWorstScore = -std::numeric_limits<double>::infinity();
+    // init
+    for (int i = 0; i < number_of_particles; i++) {
+        swarm.push_back(initializeParticle(num_trees));
+        double score = evaluateFitness(swarm[i].getPosition());
+
+        if (score <= globalBestScore) {
+            globalBestScore = score;
+            globalBest = swarm[i].getPosition();
+        }
+
+        if (score > globalWorstScore) {
+            globalWorstScore = score;
+        }
+    }
+
+    for (int it = 0; it < number_of_iterations; it++) {
+        double currentItBest = std::numeric_limits<double>::infinity();
+        double currentItWorst = -std::numeric_limits<double>::infinity();
+        
+        for (int i = 0; i < number_of_particles; i++) {
+            auto position = swarm[i].getPosition();
+            double score = evaluateFitness(position);
+
+
+            if (score < currentItBest){
+                 currentItBest = score;
+            }
+            if(score > currentItWorst){
+                currentItWorst = score;
+            }  
+
+            if (score <= swarm[i].getPersonalBestScore()) {
+                swarm[i].updatePersonalBest(position, score);
+            }
+
+            if (swarm[i].getPersonalBestScore() < globalBestScore) {
+                globalBest = swarm[i].getPersonalBest();
+                globalBestScore = swarm[i].getPersonalBestScore();
+            }
+        }
+        std::cout << "PSO's iteration: " << it << std::endl;
+
+        history.push_back({globalBestScore,currentItBest,currentItWorst}); //tu zapis
+
+        for (int i = 0; i < number_of_particles; i++) {
+            swarm[i].updateVelocity(calculateNewVelocity(swarm[i]));
+            swarm[i].updatePosition(calculateNewPosition(swarm[i]));
+        }
+
+        updateInertiaWeight(it);
+    }
+
+    return history;
+}
+
+
 
 
 
@@ -174,7 +245,7 @@ std::vector<float> Pso::algorithmImproved(int num_trees, double Prob) {
     //losowa inicjalizacja cząstek i globalBest
     for(int i=0; i<number_of_particles; i++){
         swarm.push_back(initializeParticle(num_trees));
-        double score = evaluateFitness(num_trees, swarm[i].getPosition());
+        double score = evaluateFitness(swarm[i].getPosition());
         if(score<=globalBestScore){
             globalSecondBestScore = globalBestScore;
             globalSecondBest = globalBest; //pierwszy spada na drugie miejsce
@@ -194,7 +265,7 @@ std::vector<float> Pso::algorithmImproved(int num_trees, double Prob) {
         for(int i=0; i<number_of_particles; i++){
 
             std::vector<float> position = swarm[i].getPosition(); //z sąsiedztwa?
-            double score = evaluateFitness(num_trees, position);
+            double score = evaluateFitness(position);
             
             if(score<=swarm[i].getPersonalBestScore()){
                 swarm[i].updatePersonalBest(position,score);
@@ -242,6 +313,109 @@ std::vector<float> Pso::algorithmImproved(int num_trees, double Prob) {
 }
 
 
+
+std::vector<PsoMetrics> Pso::algorithmImprovedWithScores(int num_trees, double Prob) {
+    std::vector<PsoParticle> swarm;
+    
+    std::vector<PsoMetrics> history;
+
+    globalBestScore = std::numeric_limits<float>::infinity();
+    globalWorstScore = -std::numeric_limits<double>::infinity();
+    globalSecondBestScore=std::numeric_limits<float>::infinity();
+    std::uniform_real_distribution<float> range(0.0f, 1.0f);
+
+
+
+    //losowa inicjalizacja cząstek i globalBest
+    for(int i=0; i<number_of_particles; i++){
+        swarm.push_back(initializeParticle(num_trees));
+        double score = evaluateFitness(swarm[i].getPosition());
+        if(score<=globalBestScore){
+            globalSecondBestScore = globalBestScore;
+            globalSecondBest = globalBest; //pierwszy spada na drugie miejsce
+            globalBestScore=score;
+            globalBest=swarm[i].getPosition();
+        }
+        else if(score <=globalSecondBestScore && score > globalBestScore){
+            globalSecondBestScore = globalBestScore;
+            globalSecondBest = globalBest;
+        }
+
+
+        if (score > globalWorstScore) {
+            globalWorstScore = score;
+        }
+    }
+
+
+    for(int it=0; it<number_of_iterations; it++){
+        double currentItBest = std::numeric_limits<double>::infinity();
+        double currentItWorst = -std::numeric_limits<double>::infinity();
+
+    //pętla po wszystkich cząstkach        
+        for(int i=0; i<number_of_particles; i++){
+
+            std::vector<float> position = swarm[i].getPosition(); //z sąsiedztwa?
+            double score = evaluateFitness(position);
+            
+            if (score < currentItBest){
+                 currentItBest = score;
+            }
+            if(score > currentItWorst){
+                currentItWorst = score;
+            }  
+
+            if(score<=swarm[i].getPersonalBestScore()){
+                swarm[i].updatePersonalBest(position,score);
+            }
+
+            if(swarm[i].getPersonalBestScore()<globalBestScore){
+                globalSecondBest = globalBest;
+                globalSecondBestScore = globalBestScore;
+                globalBest = swarm[i].getPersonalBest();
+                globalBestScore = swarm[i].getPersonalBestScore();
+            }
+
+            if(swarm[i].getPersonalBestScore()<globalSecondBestScore && swarm[i].getPersonalBestScore()>globalBestScore){
+                globalSecondBest = swarm[i].getPersonalBest();
+                globalSecondBestScore = swarm[i].getPersonalBestScore();
+            }
+
+        }
+
+
+        float r1 = range(rng);
+
+    //zaktualizuj pozycje i velocity
+        if(r1>Prob){
+            for(int i=0; i<number_of_particles; i++){
+                swarm[i].updateVelocity(calculateNewVelocity(swarm[i]));
+                swarm[i].updatePosition(calculateNewPosition(swarm[i]));
+            }
+        }else{
+            for(int i=0; i<number_of_particles; i++){
+                swarm[i].updateVelocity(calculateNewVelocityImproved(swarm[i]));
+                swarm[i].updatePosition(calculateNewPosition(swarm[i]));
+            }
+        }
+       
+
+        //zaktualizuj inertia
+        updateInertiaWeight(it);
+
+        std::cout << "Imroved PSO's iteration: " << it << std::endl;
+
+        history.push_back({globalBestScore,currentItBest,currentItWorst}); //tu zapis
+
+        
+    }
+
+    return history;
+    
+    
+}
+
+
 std::vector<std::vector<float>> Pso::runForAllTreeCounts(int maxTrees){
 
     std::vector<std::vector<float>> results;
@@ -252,3 +426,8 @@ std::vector<std::vector<float>> Pso::runForAllTreeCounts(int maxTrees){
 
     return results;
 }
+
+
+// ew TabuSearch jak nie ma PSO
+// wyniki dla 10, 50, 100 i porównać
+// zrobić ekstra TabuSearch + kryterium aspiracji
