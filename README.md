@@ -36,22 +36,13 @@ Zaimplementowane metody:
 
 ## Jak wybrać metody w `main.cpp`
 
-W pliku `main.cpp` znajdują się duże bloki kodu odpowiadające różnym metaheurystykom (np. DE, SA, TS), każdy z własną funkcją `int main()`.
+W pliku `main.cpp` znajdują się duże bloki kodu odpowiadające różnym metaheurystykom (np. DE, SA, TS) należy odpowiedni blok zakomentować / odkomentować w celu uruchomienia odpowiedniej metaheurystyki.
 
-Aby uruchomić konkretną metodę:
-
-1. Otwórz `main.cpp`.
-2. **Zakomentuj** cały blok `main()` dla wszystkich metod, których nie chcesz aktualnie uruchamiać.
-3. **Odkomentuj** blok `main()` dla metaheurystyki, którą chcesz uruchomić, tak aby w projekcie istniała dokładnie jedna funkcja `int main()`.
-4. Zapisz plik i przebuduj projekt.
 
 ---
-
 ## Uwaga dotycząca innych plików
 
-Oprócz zmiany aktywnego `main()` w `main.cpp` **w niektórych pozostałych plikach źródłowych również trzeba zakomentować / odkomentować odpowiednie fragmenty kodu**, tak aby kompilowana była tylko logika dla aktualnie używanej metaheurystyki.
-
-
+Oprócz zmiany aktywnego `main()` w `main.cpp` **w niektórych pozostałych plikach źródłowych również trzeba zakomentować / odkomentować odpowiednie fragmenty kodu** (zgodnie z komentarzami znajdującymi się w kodzie), tak aby kompilowana była tylko logika dla aktualnie używanej metaheurystyki.
 
 
 ## Budowanie i uruchamianie (Windows, CMake + Visual Studio)
