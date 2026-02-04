@@ -2,56 +2,75 @@
 #include <iostream>
 #include <iomanip>
 #include "GreedyPacker.h"
-#include "CSVWriter.h"
-
+#include "Pso.h"
+#include <fstream>
 
 int main(){
 
-    std::cout << "TESTY ChristmasTree ==================" << std::endl;
 
-    // choinka w (0,0) bez obrotu
-    ChristmasTree tree11(0.0, 0.0, 0.0);
-    std::cout << "tree1 (0,0,0):" << std::endl;
-    std::cout << "   Pole: " << tree11.getArea() << std::endl;
+    /// PSO - wyniki dla n=10; FFE = 3k
 
-    // 
-    const auto* env1 = tree11.getEnvelope();
-    std::cout << "   Ramka: [" 
-              << env1->getMinX() << "," << env1->getMaxX() 
-              << "," << env1->getMinY() << "," << env1->getMaxY() << "]" << std::endl;
-    
-    std::cout << std::endl;
 
-    std::cout << "TEST PRZECIEC ===" << std::endl;
+        int numberOfTrees = 10;
+        int runsPerTest = 10;
+        int numberOfIterations = 100;
+        int numberOfParticles = 30;
+        int acc_c_1 = 1.49445;
+        int acc_c_2 = 1.49445;
+        int acc_c_3 = 1.9;
+        double min_inertia = 0.4;
+        double max_inertia = 0.9;
+        double inertia_weight = 0.7;
+        int seed = 1;
+        GreedyPacker packer;
+        double P = 0.5;
 
-    ChristmasTree tree1(0.0, 0.0, 0.0);     // Środek
-    ChristmasTree tree2(0.1, 0.0, 0.0);     // Blisko – powinny się przecinać
-    ChristmasTree tree3(3.0, 0.0, 0.0);     // Daleko – nie przecinają się
 
-    std::cout << "tree1 intersects tree2: " << (tree1.intersects(tree2) ? "TAK" : "NIE") << std::endl;
-    std::cout << "tree1 intersects tree3: " << (tree1.intersects(tree3) ? "TAK" : "NIE") << std::endl;
-    
-    std::cout <<  "Greedy test - bez zmiany kata -- kat 0" << std::endl;
 
-    int num_trees = 1;
-    std::cout << "\nPakowanie do pudla " << num_trees << " choinek..." << std::endl;
-    GreedyPacker packer;
-    auto result  = packer.packTrees(num_trees);
-    // rozdzielenie wyniku -- results to choinki i boki kwadratow
-    std::vector<std::shared_ptr<ChristmasTree>> trees = result.first;
-    std::vector<double> sides = result.second;
-    std::cout << "\nZapakowane" << std::endl;
 
-    std::cout << "Zapis do pliku " << std::endl;
+        std::vector<float> bestStandardResults;
+        std::vector<float> bestImpResults;
+    for (int i = 0; i < runsPerTest; i++) {
 
-    // CSVWriter::saveTreesToCSV(trees, "results_5.1.csv");  // zapis w głównym katalogu projektu
-    CSVWriter::saveTreesToCSV(trees, sides,  "../data/output_greedy/trees_square_1.csv"); // zapis w katalogu z wynikami -- wywołanie programu musi być z katalogu build
+        Pso pso(inertia_weight, max_inertia, min_inertia,
+            acc_c_1,  acc_c_2,  numberOfParticles,
+            numberOfIterations, packer,  i);
+        std::vector<float> standardResult = pso.algorithm(numberOfTrees);
+        std::vector<float> impResult = pso.algorithmImproved(numberOfTrees, P);
 
-    std::cout << "Koniec" << std::endl;
+        float resultStandardScore = 0.0;
+        for(int j=0; j<standardResult.size(); j++){
+            resultStandardScore += (standardResult.at(j)*standardResult.at(j))/(j+1);
+        }
+        bestStandardResults.push_back(resultStandardScore);
+       
+       
+        float resultImprovedScore = 0.0;
+        for(int j=0; j<impResult.size(); j++){
+            resultImprovedScore += (impResult.at(j)*impResult.at(j))/(j+1);
+        }
+        bestImpResults.push_back(resultImprovedScore);
+    }   
 
+
+    std::ofstream stdFile("pso10treesBestScores.csv");
+    if (stdFile.is_open()) {
+        stdFile << "Run,BestScore\n";
+        for (int i = 0; i < bestStandardResults.size(); i++) {
+            stdFile << i << "," << bestStandardResults[i] << "\n";
+        }
+        stdFile.close();
+    }
+
+    std::ofstream impFile("psoImp10treesBestScores.csv");
+    if (impFile.is_open()) {
+        impFile << "Run,BestScore\n"; 
+        for (int i = 0; i < bestImpResults.size(); i++) {
+            impFile << i << "," << bestImpResults[i] << "\n";
+        }
+        impFile.close();
+    }
 
     return 0;
-
-
 
 }
