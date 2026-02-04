@@ -444,14 +444,14 @@ if __name__ == '__main__':
     # plot_results(side_length_200, trees_200, 200)
 
     # # wczytanie wszystkich konfiguracji
-    # all_trees = load_trees_from_submission('sample_submission.csv')
-    # dict_of_side_length = {}
+    all_trees = load_trees_from_submission('data/output_greedy/DE_test.csv')
+    dict_of_side_length = {}
 
-    # for n in range(1, 201):
-    #         if n in all_trees:
-    #             side_length = calculate_side_length(all_trees[n])
-    #             dict_of_side_length[f"{n:03d}"] = side_length
+    for n in range(1, 2):
+            if n in all_trees:
+                side_length = calculate_side_length(all_trees[n])
+                dict_of_side_length[f"{n:03d}"] = side_length
 
-    # total_score = get_total_score(dict_of_side_length)
-    # print(f'Total score: {total_score:.12f}')
+    total_score = get_total_score(dict_of_side_length)
+    print(f'Total score: {total_score:.12f}')
 

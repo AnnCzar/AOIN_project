@@ -46,6 +46,7 @@ public:
     }
     
     size_t num_cells() const { return cells_.size(); }
+
     double avg_trees_per_cell() const {
         if (cells_.empty()) return 0.0;
         
@@ -62,6 +63,7 @@ private:
     std::unordered_map<uint64_t, std::vector<int>> cells_;
     
     std::unordered_map<int, std::pair<int, int>> tree_cells_;
+
     uint64_t make_key(int x, int y) const {
         uint32_t ux = (uint32_t)(x + 1000);
         uint32_t uy = (uint32_t)(y + 1000);

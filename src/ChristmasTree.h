@@ -37,10 +37,11 @@ private:
     std::unique_ptr<Geometry> translatePolygon(Geometry* geom, double dx, double dy);
     std::vector<Coordinate> getInitialCoordinates();
 
-    //optymalizacja
+    //OPTYMALIZACJA
     std::unique_ptr<Geometry> base_rotated_polygon;
     double cached_angle;
     void rebuildRotatedPolygon();
+
 
 public:
     // Konstruktor
@@ -72,6 +73,7 @@ public:
     void rotate(double new_angle);
 
     double getScaleFactor() const;
+
 
 };
 

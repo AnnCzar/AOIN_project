@@ -64,9 +64,14 @@ std::vector<SubmissionRow> Evaluation :: loadSubmissionFile(const std::string fi
     return submission;
 }
 
+
+
 double Evaluation::evaluation_score(const std::vector<SubmissionRow>& submission) {   
     const double limit = 100.0;
+
+// SA -- odkomentowac 
     const double PENALTY_PER_COLLISION = 1000.0;  
+// SA -- odkomentowac  -- koniec
     
     for (const auto& row : submission) {
         if (row.x < -limit || row.x > limit || row.y < -limit || row.y > limit) {
@@ -81,7 +86,9 @@ double Evaluation::evaluation_score(const std::vector<SubmissionRow>& submission
     }
     
     double total_score = 0.0;
+// SA -- odkomentowac 
     int total_collisions = 0;
+// SA -- odkomentowac  -- koniec
     
     for (const auto& [group_name, df_group] : groups) {
         int num_trees = df_group.size();
@@ -90,6 +97,39 @@ double Evaluation::evaluation_score(const std::vector<SubmissionRow>& submission
         for (const auto& row : df_group) {
             placed_trees.emplace_back(row.x, row.y, row.deg);
         }
+  // DE -- odkomentowac 
+//         double scale_factor = placed_trees[0].getScaleFactor();
+        
+//         for (size_t i = 0; i < placed_trees.size(); ++i) {
+//             for (size_t j = i + 1; j < placed_trees.size(); ++j) {
+//                 if (placed_trees[i].intersects(placed_trees[j])) {
+//                     if (!placed_trees[i].getPolygon()->touches(placed_trees[j].getPolygon())) {
+//                         std::stringstream ss;
+//                         ss << "Overlapping trees in group " << group_name;
+//                         throw std::runtime_error(ss.str());
+//                     }
+//                 }
+//             }
+//         }
+        
+//         double min_x = std::numeric_limits<double>::max();
+//         double max_x = std::numeric_limits<double>::lowest();
+//         double min_y = std::numeric_limits<double>::max();
+//         double max_y = std::numeric_limits<double>::lowest();
+        
+//         for (const auto& tree : placed_trees) {
+//             const Envelope* env = tree.getEnvelope();
+//             min_x = std::min(min_x, env->getMinX());
+//             max_x = std::max(max_x, env->getMaxX());
+//             min_y = std::min(min_y, env->getMinY());
+//             max_y = std::max(max_y, env->getMaxY());
+//         }
+        
+//         double side_length_scaled = std::max(max_x - min_x, max_y - min_y);
+  // DE -- odkomentowac -- koniec
+      
+      
+// SA -- odkomentowac 
         double scale_factor = placed_trees[0].getScaleFactor();
         
         std::vector<geos::geom::Geometry*> all_polygons;
@@ -136,21 +176,29 @@ double Evaluation::evaluation_score(const std::vector<SubmissionRow>& submission
         const geos::geom::Envelope* bounds = union_geom->getEnvelopeInternal();
         
         double side_length_scaled = std::max(bounds->getWidth(), bounds->getHeight());
+// SA -- odkomentowac  -- koniec
         
         double group_score = (side_length_scaled * side_length_scaled) / 
                             (scale_factor * scale_factor) / 
                             static_cast<double>(num_trees);
         
+  // DE -- odkomentowac 
+//         total_score += group_score;
+//     }
+    
+//     return total_score;
+// }
+  // DE -- odkomentowac  -- koniec
+
+      
+// SA -- odkomentowac 
         double collision_penalty = group_collisions * PENALTY_PER_COLLISION;
         
         total_score += group_score + collision_penalty;
     }
-    
-    // if (total_collisions > 0) {
-    //     std::cerr << "WARNING: Total collisions in submission: " << total_collisions << std::endl;
-    //     std::cerr << "WARNING: Total penalty added: " << (total_collisions * PENALTY_PER_COLLISION) << std::endl;
-    // }
+
     
     return total_score;
 }
 
+// SA -- odkomentowac  -- koniec

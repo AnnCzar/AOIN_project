@@ -23,4 +23,11 @@ struct SubmissionRow {
     SubmissionRow() : x(0.0), y(0.0), deg(0.0) {}
 };
 
+
+struct Individual {
+    std::vector<int> permutation;
+    double fitness;
+};
+
+
 #endif 
