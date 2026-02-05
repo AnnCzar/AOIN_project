@@ -19,11 +19,8 @@ opis.md
 
 plots_DE
 santa2025.py
-*.csv
 *.txt
 proba.csv
 converter.py
 results/
-*.png
-
 
